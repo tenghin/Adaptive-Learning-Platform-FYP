@@ -1,0 +1,269 @@
+FYP AI POWERED PERSONALISED LEARNING PLATFORM
+
+This file documented the planning for the FYP project
+
+<------------| AI Feature |------------>
+    Generating Visual Learning material aka Mind map
+
+        AI Mind Map Pipeline
+
+            Lesson Content
+                ↓
+            Prompt Builder
+                ↓
+            Gemini API
+                ↓
+            Knowledge JSON
+                ↓
+            Store in PostgreSQL
+                ↓
+            Load JSON
+                ↓
+            Convert to React Flow Nodes + Edges
+                ↓
+            Dagre (Auto Layout)
+                ↓
+            React Flow
+                ↓
+            Interactive Mind Map
+
+        Responsibilities:
+
+            --------Gemini--------
+            Understand lesson
+            Generate structured JSON
+            No UI or coordinates
+
+            ---------JSON----------
+            Store concepts
+            Store relationships
+            Reusable for quiz, recommendations, search, etc.
+
+            -------Converter-------
+            JSON → React Flow nodes & edges
+
+            ---------Dagre---------
+            Automatically generate x & y positions    #react flow requires an X and Y coordinates for each item, this is to create those Automatically
+            No manual positioning
+
+            -------React Flow-------
+            Render graph
+            Drag
+            Zoom
+            Click nodes
+            Future expand/collapse
+
+            note: mermaid isnt being used due to it lack proper visualisation and lack Interactivity. It also have consistency issue.
+
+    Generate and receive prompt from selected AI
+        
+        AI Architecture
+
+            Frontend
+                ↓
+            Flask Route
+                ↓
+            AI Service
+                ↓
+            Prompt Builder
+                ↓
+            Gemini API
+                ↓
+            JSON Response
+                ↓
+            Backend Validation
+                ↓
+            Frontend
+        
+        Folder Layout
+            adaptive_learning/
+
+            ai/
+            │
+            ├── ai_service.py
+            ├── prompt_builder.py
+            ├── schemas.py
+            └── gemini_client.py
+
+        Responsibilities
+        
+            gemini_client.py
+                Connect to Gemini API
+                Send prompt
+                Return AI response
+            
+            prompt_builder.py
+
+                Store all prompts.
+
+                Examples:
+
+                build_graph_prompt()
+                build_summary_prompt()
+                build_quiz_prompt()
+                build_explanation_prompt()
+            
+            ai_service.py
+
+                AI workflow.
+
+                Lesson
+                    ↓
+                Build Prompt
+                    ↓
+                Call Gemini
+                    ↓
+                Validate JSON
+                    ↓
+                Save Database
+
+            schemas.py
+
+                Store expected JSON structures.
+
+                Examples:
+
+                Knowledge Graph
+                Summary
+                Quiz
+                Prompt Format
+                Role
+                ↓
+
+                Task
+                ↓
+
+                Rules
+
+                - Return JSON only
+                - No Markdown
+                - Follow schema exactly
+
+                ↓
+
+                Lesson Content
+
+<--------------| Filing |-------------->
+    End product file should look "something" like this:
+
+        AdaptiveLearningPlatform/                       #THE master file, but its more like a folder
+        │
+        ├── backend/                                    #just like it says, BACKEND
+        │   │
+        │   ├── run.py
+        │   ├── config.py
+        │   ├── .env
+        │   ├── requirements.txt                        #required library or plugin to run and maintain this software !important
+        │   │
+        │   ├── migrations/
+        │   │
+        │   ├── adaptive_learning/                      #core system !also very important
+        │   │   │
+        │   │   ├── __init__.py
+        │   │   ├── extensions.py
+        │   │   │
+        │   │   ├── models/                             #python version of TABLES
+        │   │   │   ├── __init__.py                     #just tot tell python these all are the models belong to this package
+        │   │   │   ├── user.py
+        │   │   │   ├── course.py
+        │   │   │   ├── lesson.py
+        │   │   │   ├── lesson_resource.py
+        │   │   │   ├── quiz.py
+        │   │   │   ├── question.py
+        │   │   │   ├── quiz_attempt.py
+        │   │   │   ├── progress.py
+        │   │   │   └── password_reset.py
+        │   │   │
+        │   │   ├── routes/                             #If models = database, then... routes = API endpoints. --ChatGPT
+        │   │   │   ├── auth.py
+        │   │   │   ├── user.py
+        │   │   │   ├── course.py
+        │   │   │   ├── lesson.py
+        │   │   │   ├── quiz.py
+        │   │   │   ├── progress.py
+        │   │   │   └── ai.py
+        │   │   │
+        │   │   ├── services/                          #To store services file
+        │   │   │   ├── auth_service.py
+        │   │   │   ├── user_service.py
+        │   │   │   ├── lesson_service.py
+        │   │   │   ├── quiz_service.py
+        │   │   │   ├── recommendation_service.py
+        │   │   │   └── progress_service.py
+        │   │   │
+        │   │   ├── ai/                                #for core AI functions
+        │   │   │   ├── ai_service.py
+        │   │   │   ├── gemini_client.py
+        │   │   │   ├── prompt_builder.py
+        │   │   │   ├── schemas.py
+        │   │   │   └── prompts/
+        │   │   │       ├── graph.txt
+        │   │   │       ├── summary.txt
+        │   │   │       ├── quiz.txt
+        │   │   │       └── explain.txt
+        │   │   │
+        │   │   ├── utils/                             #utils, yep
+        │   │   │   ├── password.py
+        │   │   │   ├── validators.py
+        │   │   │   ├── jwt_helper.py
+        │   │   │   └── response.py
+        │   │   │
+        │   │   └── static/
+        │   │
+        │   └── tests/                                 #a group of documents for testing
+        │       ├── test_auth.py
+        │       ├── test_ai.py
+        │       ├── test_lesson.py
+        │       └── test_quiz.py
+        │
+        └── frontend/                                  #like it says, ꜰʀᴏɴᴛᴇɴᴅ
+            │
+            ├── public/
+            │
+            └── src/
+                │
+                ├── api/                          
+                │   ├── auth.js
+                │   ├── lesson.js
+                │   ├── quiz.js
+                │   └── ai.js
+                │
+                ├── components/                        #component, obviously
+                │   ├── Navbar.jsx
+                │   ├── Sidebar.jsx
+                │   ├── LessonCard.jsx
+                │   ├── QuizCard.jsx
+                │   ├── ProgressBar.jsx
+                │   └── MindMap.jsx
+                │
+                ├── pages/                            #what can pages be? I wonder indeed
+                │   ├── Login.jsx
+                │   ├── Register.jsx
+                │   ├── Dashboard.jsx
+                │   ├── Courses.jsx
+                │   ├── Lesson.jsx
+                │   ├── Quiz.jsx
+                │   ├── Profile.jsx
+                │   └── Upload.jsx
+                │
+                ├── layouts/
+                │
+                ├── hooks/
+                │
+                ├── utils/
+                │
+                ├── App.jsx
+                │
+                └── main.jsx    
+
+    Table required in PostgreSQL
+
+        user
+        course
+        lesson
+        lesson_resource
+        quiz
+        question
+        quiz_attempt
+        progress
+        password_reset
