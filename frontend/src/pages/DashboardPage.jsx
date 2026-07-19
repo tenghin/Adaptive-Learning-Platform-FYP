@@ -206,8 +206,10 @@ export function DashboardPage() {
         !myCourses.some(
           (item) => item.course.id === course.id
         )
-    );
+    )
+    .slice(0, 6); // Limit to 6 available courses for display
   }, [courses, myCourses]);
+
 
   if (loading) {
     return (
@@ -498,6 +500,8 @@ export function DashboardPage() {
           ))}
         </Grid>
       </Box>
+      
+
     </Stack>
   );
 }
