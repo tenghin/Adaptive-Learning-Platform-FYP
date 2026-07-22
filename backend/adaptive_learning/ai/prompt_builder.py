@@ -20,7 +20,6 @@ Task:
 Generate a comprehensive educational summary of the lesson.
 
 Rules:
-
 - Use ONLY information from the lesson.
 - Do NOT invent facts.
 - Do NOT use outside knowledge.
@@ -37,6 +36,7 @@ Rules:
 - Write in simple, beginner-friendly language suitable for students.
 - If the lesson is short, summarize all available information.
 - If information is missing, return an empty string instead of guessing.
+- Keep everything concise and to the point.
 - Output must always be valid JSON.
 
 Formatting Rules:
@@ -52,7 +52,6 @@ Formatting Rules:
 When using bullet points, each bullet point must appear on its own line.
 
 Example:
-
 Key Phrases
 
 • わたしは〇〇です (Watashi wa ○○ desu.) — I am ○○.
@@ -93,6 +92,8 @@ Task:
 
 Produce a structured knowledge graph.
 
+The knowledge graph should have a clear hierarchy of concepts and relationships that accurately represent the lesson content.
+
 Return EXACTLY one JSON object.
 
 The field "lesson_title" is REQUIRED.
@@ -126,6 +127,7 @@ Concepts should include:
 - techniques
 - important terminology
 
+The knowledge graph should have a clear hierarchy of concepts and relationships that accurately represent the lesson content.
 Avoid generic concepts that do not help students learn.
 - A concept should represent an important topic, process, definition or key idea.
 
@@ -187,7 +189,6 @@ Task:
 Generate exactly {QUIZ_QUESTION_COUNT} high-quality multiple-choice questions that cover different parts of the lesson.
 
 Rules:
-Rules:
 - Use ONLY information from the lesson.
 - Do NOT invent facts.
 - Cover different concepts across the lesson.
@@ -220,47 +221,6 @@ Required JSON schema:
 
 Lesson title:
 {lesson_title}
-
-Lesson content:
-{lesson_content}
-""".strip()
-
-
-def build_explanation_prompt(concept_name, lesson_content):
-    return f"""
-You are an experienced university tutor creating educational learning materials.
-
-Your goal is to help students understand concepts accurately.
-
-Use ONLY the information provided in the lesson.
-Do NOT invent facts or use outside knowledge.
-
-The output will be used by an educational web application. Accuracy and consistency are more important than creativity.
-
-Return JSON only. No markdown. No code fences.
-
-Rules:
-- Use ONLY information from the lesson.
-- Explain in simple language suitable for a first-year university student.
-Write approximately 100 to 200 words.
-
-Explain:
-- what the concept is
-- why it is important
-- how it relates to the lesson
-
-Use simple educational language.
-- Do NOT invent facts.
-- Output must always be valid JSON.
-
-Required JSON schema:
-{{
-  "concept": "",
-  "explanation": ""
-}}
-
-Concept:
-{concept_name}
 
 Lesson content:
 {lesson_content}

@@ -8,6 +8,8 @@ import {
   Divider,
   Paper,
   Stack,
+  ToggleButton,
+  ToggleButtonGroup,
   Typography,
 } from '@mui/material';
 import { useAuth } from '../hooks/useAuth.jsx';
@@ -38,6 +40,8 @@ const methodLabelMap = {
   quiz: 'Quiz Retry',
 };
 
+const previewContentOptions = ['material', 'summary', 'mind_map'];
+
 
 export function LessonPage() {
   const { lessonId } = useParams();
@@ -58,6 +62,7 @@ export function LessonPage() {
   const [quiz, setQuiz] = useState(null);
   const [quizVersions, setQuizVersions] = useState([]);
   const [showUpload, setShowUpload] = useState(false);
+  const [adminSelectedContent, setAdminSelectedContent] = useState('material');
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -85,6 +90,11 @@ export function LessonPage() {
       : null;
 
   const showNextLesson = recommendation?.recommended_method === 'next_lesson';
+  const recommendedPreviewContent = previewContentOptions.includes(
+    recommendation?.recommended_method
+  )
+    ? recommendation.recommended_method
+    : null;
 
   const loadLesson = async () => {
     const [
@@ -230,56 +240,100 @@ export function LessonPage() {
     }
   };
 
+  const renderSummaryContent = () => (
+    <Paper sx={{ p: { xs: 3, md: 4 } }}>
+      <Stack spacing={2}>
+        <Typography variant="h5">AI Summary</Typography>
+        <Typography variant="body2" color="text.secondary">
+          Focus on the distilled explanation before you move to the quiz.
+        </Typography>
+        <Box
+          sx={{
+            '& p': {
+              mb: 2,
+              lineHeight: 1.8,
+            },
+            '& ul': {
+              pl: 3,
+              mb: 2,
+            },
+            '& li': {
+              mb: 1,
+            },
+            '& strong': {
+              fontWeight: 700,
+            },
+          }}
+        >
+          <ReactMarkdown>
+            {summary || 'No summary is available for this lesson yet.'}
+          </ReactMarkdown>
+        </Box>
+      </Stack>
+    </Paper>
+  );
+
+  const renderMindMapContent = () => (
+    <Paper sx={{ p: { xs: 3, md: 4 } }}>
+      <Stack spacing={2}>
+        <Typography variant="h5">AI Mind Map</Typography>
+        <Typography variant="body2" color="text.secondary">
+          Study the concept relationships before you retake the quiz.
+        </Typography>
+        <LessonMindMap knowledgeGraph={knowledgeGraph} />
+      </Stack>
+    </Paper>
+  );
+
+  const renderMaterialContent = () => (
+    <Paper sx={{ p: { xs: 3, md: 4 } }}>
+      <Stack spacing={3}>
+        <Box>
+          <Typography variant="h5">Original Learning Material</Typography>
+          <Typography variant="body2" color="text.secondary">
+            Start with the core material for this lesson.
+          </Typography>
+        </Box>
+
+        <Typography variant="body1" sx={{ whiteSpace: 'pre-wrap' }}>
+          {lesson?.content}
+        </Typography>
+
+        {materialResources.length ? (
+          <>
+            <Divider />
+            <LessonResourcesPanel
+              resources={materialResources}
+              isAdmin={isAdmin}
+              onDeleted={loadLesson}
+            />
+          </>
+        ) : null}
+      </Stack>
+    </Paper>
+  );
+
+  const renderAdminContent = () => {
+    if (adminSelectedContent === 'summary') {
+      return renderSummaryContent();
+    }
+
+    if (adminSelectedContent === 'mind_map') {
+      return renderMindMapContent();
+    }
+
+    return renderMaterialContent();
+  };
+
   const renderRecommendedContent = () => {
     const recommendedMethod = recommendation?.recommended_method;
 
     if (recommendedMethod === 'summary') {
-      return (
-        <Paper sx={{ p: { xs: 3, md: 4 } }}>
-          <Stack spacing={2}>
-            <Typography variant="h5">AI Summary</Typography>
-            <Typography variant="body2" color="text.secondary">
-              Focus on the distilled explanation before you move to the quiz.
-            </Typography>
-            <Box
-              sx={{
-                  "& p": {
-                      mb: 2,
-                      lineHeight: 1.8,
-                  },
-                  "& ul": {
-                      pl: 3,
-                      mb: 2,
-                  },
-                  "& li": {
-                      mb: 1,
-                  },
-                  "& strong": {
-                      fontWeight: 700,
-                  },
-              }}
-          >
-              <ReactMarkdown>
-                  {summary || "No summary is available for this lesson yet."}
-              </ReactMarkdown>
-          </Box>
-          </Stack>
-        </Paper>
-      );
+      return renderSummaryContent();
     }
 
     if (recommendedMethod === 'mind_map') {
-      return (
-        <Paper sx={{ p: { xs: 3, md: 4 } }}>
-          <Stack spacing={2}>
-            <Typography variant="h5">AI Mind Map</Typography>
-            <Typography variant="body2" color="text.secondary">
-              Study the concept relationships before you retake the quiz.
-            </Typography>
-            <LessonMindMap knowledgeGraph={knowledgeGraph} />
-          </Stack>
-        </Paper>
-      );
+      return renderMindMapContent();
     }
 
     if (recommendedMethod === 'quiz') {
@@ -296,31 +350,7 @@ export function LessonPage() {
     }
 
     return (
-      <Paper sx={{ p: { xs: 3, md: 4 } }}>
-        <Stack spacing={3}>
-          <Box>
-            <Typography variant="h5">Original Learning Material</Typography>
-            <Typography variant="body2" color="text.secondary">
-              Start with the core material for this lesson.
-            </Typography>
-          </Box>
-
-          <Typography variant="body1" sx={{ whiteSpace: 'pre-wrap' }}>
-            {lesson?.content}
-          </Typography>
-
-          {materialResources.length ? (
-            <>
-              <Divider />
-              <LessonResourcesPanel
-                resources={materialResources}
-                isAdmin={isAdmin}
-                onDeleted={loadLesson}
-              />
-            </>
-          ) : null}
-        </Stack>
-      </Paper>
+      renderMaterialContent()
     );
   };
 
@@ -373,7 +403,141 @@ export function LessonPage() {
         </Stack>
       </Paper>
 
-      {!showNextLesson ? renderRecommendedContent() : null}
+      {isAdmin ? (
+        <Paper sx={{ p: { xs: 3, md: 4 } }}>
+          <Stack spacing={3}>
+            <Box>
+              <Typography variant="h5">Content Preview</Typography>
+              <Typography variant="body2" color="text.secondary">
+                Switch between lesson content types without changing the student workflow. Admin Tools.
+              </Typography>
+            </Box>
+
+            <ToggleButtonGroup
+              value={adminSelectedContent}
+              exclusive
+              onChange={(_, nextValue) => {
+                if (nextValue) {
+                  setAdminSelectedContent(nextValue);
+                }
+              }}
+              color="primary"
+              sx={{
+                flexWrap: 'wrap',
+                gap: 1,
+              }}
+            >
+              <ToggleButton
+                value="material"
+                sx={{
+                  borderRadius: 999,
+                  border: '1px solid',
+                  borderColor: recommendedPreviewContent === 'material'
+                    ? 'secondary.main'
+                    : 'rgba(18, 50, 79, 0.14)',
+                  px: 2,
+                  color: recommendedPreviewContent === 'material'
+                    ? 'secondary.dark'
+                    : 'text.primary',
+                  backgroundColor: recommendedPreviewContent === 'material'
+                    ? 'rgba(224, 159, 62, 0.12)'
+                    : 'transparent',
+                  '&.Mui-selected': {
+                    backgroundColor: recommendedPreviewContent === 'material'
+                      ? 'secondary.main'
+                      : 'primary.main',
+                    color: recommendedPreviewContent === 'material'
+                      ? 'secondary.contrastText'
+                      : 'primary.contrastText',
+                    borderColor: recommendedPreviewContent === 'material'
+                      ? 'secondary.main'
+                      : 'primary.main',
+                  },
+                  '&.Mui-selected:hover': {
+                    backgroundColor: recommendedPreviewContent === 'material'
+                      ? 'secondary.main'
+                      : 'primary.main',
+                  },
+                }}
+              >
+                Original Material
+              </ToggleButton>
+              <ToggleButton
+                value="summary"
+                sx={{
+                  borderRadius: 999,
+                  border: '1px solid',
+                  borderColor: recommendedPreviewContent === 'summary'
+                    ? 'secondary.main'
+                    : 'rgba(18, 50, 79, 0.14)',
+                  px: 2,
+                  color: recommendedPreviewContent === 'summary'
+                    ? 'secondary.dark'
+                    : 'text.primary',
+                  backgroundColor: recommendedPreviewContent === 'summary'
+                    ? 'rgba(224, 159, 62, 0.12)'
+                    : 'transparent',
+                  '&.Mui-selected': {
+                    backgroundColor: recommendedPreviewContent === 'summary'
+                      ? 'secondary.main'
+                      : 'primary.main',
+                    color: recommendedPreviewContent === 'summary'
+                      ? 'secondary.contrastText'
+                      : 'primary.contrastText',
+                    borderColor: recommendedPreviewContent === 'summary'
+                      ? 'secondary.main'
+                      : 'primary.main',
+                  },
+                  '&.Mui-selected:hover': {
+                    backgroundColor: recommendedPreviewContent === 'summary'
+                      ? 'secondary.main'
+                      : 'primary.main',
+                  },
+                }}
+              >
+                AI Summary
+              </ToggleButton>
+              <ToggleButton
+                value="mind_map"
+                sx={{
+                  borderRadius: 999,
+                  border: '1px solid',
+                  borderColor: recommendedPreviewContent === 'mind_map'
+                    ? 'secondary.main'
+                    : 'rgba(18, 50, 79, 0.14)',
+                  px: 2,
+                  color: recommendedPreviewContent === 'mind_map'
+                    ? 'secondary.dark'
+                    : 'text.primary',
+                  backgroundColor: recommendedPreviewContent === 'mind_map'
+                    ? 'rgba(224, 159, 62, 0.12)'
+                    : 'transparent',
+                  '&.Mui-selected': {
+                    backgroundColor: recommendedPreviewContent === 'mind_map'
+                      ? 'secondary.main'
+                      : 'primary.main',
+                    color: recommendedPreviewContent === 'mind_map'
+                      ? 'secondary.contrastText'
+                      : 'primary.contrastText',
+                    borderColor: recommendedPreviewContent === 'mind_map'
+                      ? 'secondary.main'
+                      : 'primary.main',
+                  },
+                  '&.Mui-selected:hover': {
+                    backgroundColor: recommendedPreviewContent === 'mind_map'
+                      ? 'secondary.main'
+                      : 'primary.main',
+                  },
+                }}
+              >
+                Knowledge Graph
+              </ToggleButton>
+            </ToggleButtonGroup>
+
+            {renderAdminContent()}
+          </Stack>
+        </Paper>
+      ) : !showNextLesson ? renderRecommendedContent() : null}
 
       {!showNextLesson && recommendation ? (
         <Paper sx={{ p: { xs: 3, md: 4 } }}>

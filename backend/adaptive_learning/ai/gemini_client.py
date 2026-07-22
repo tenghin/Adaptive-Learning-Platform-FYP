@@ -77,14 +77,13 @@ def _call_gemini_api(prompt):
     return parts[0].get("text", ""), None
 
 
-def _fallback_summary(lesson_title, lesson_content):
+#def _fallback_summary(lesson_title, lesson_content):
     content = lesson_content.strip()
     first_sentence = content.split(".")[0].strip()
     summary = first_sentence or f"This lesson covers {lesson_title.lower()}."
     return {"summary": summary}
 
-
-def _fallback_knowledge_graph(lesson_title, lesson_content):
+#def _fallback_knowledge_graph(lesson_title, lesson_content):
     raw_lines = [line.strip() for line in lesson_content.splitlines() if line.strip()]
     concept_labels = []
     for line in raw_lines[:5]:
